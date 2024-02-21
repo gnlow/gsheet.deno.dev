@@ -1,8 +1,11 @@
 import { parse } from "https://tsm.deno.dev/https://deno.land/std@0.215.0/csv/mod.ts"
 
-const googleSheet = (id: string) => fetch(
-    `https://docs.google.com/spreadsheets/u/0/d/${id}/export?format=csv`
-).then(x => x.text())
+const googleSheet =
+(id: string, search: URLSearchParams | string = "") =>
+    fetch(
+        `https://docs.google.com/spreadsheets/u/0/d/${id}/export?format=csv&` + search
+    )
+    .then(x => x.text())
 
 const toTable = (csv: string) => {
     const [header, ...body] = parse(csv)
@@ -47,7 +50,7 @@ Deno.serve(async (req: Request) => {
 
     if (req.headers.get("accept")?.includes("html")) {
         return new Response(
-            toHtml(await googleSheet(id)), 
+            toHtml(await googleSheet(id, url.searchParams)), 
             {
                 headers: new Headers({
                     "content-type": "text/html;charset=utf-8",
@@ -57,7 +60,7 @@ Deno.serve(async (req: Request) => {
         )
     } else {
         return new Response(
-            await googleSheet(id), 
+            await googleSheet(id, url.searchParams), 
             {
                 headers: new Headers({
                     "content-type": "text/csv",
